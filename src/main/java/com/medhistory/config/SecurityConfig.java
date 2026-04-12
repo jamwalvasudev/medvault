@@ -37,7 +37,8 @@ public class SecurityConfig {
                     "/actuator/prometheus",
                     "/oauth2/**",
                     "/login/**",
-                    "/error"
+                    "/error",
+                    "/api/specialties"
                 ).permitAll()
                 .requestMatchers(HttpMethod.GET, "/", "/index.html", "/*.js", "/*.css", "/*.ico", "/assets/**").permitAll()
                 .requestMatchers("/api/**").authenticated()
