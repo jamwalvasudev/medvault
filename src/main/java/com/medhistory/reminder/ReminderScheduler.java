@@ -33,8 +33,8 @@ public class ReminderScheduler {
     @Scheduled(fixedDelay = 60_000)
     @Transactional
     public void fireReminders() {
-        LocalTime now = LocalTime.now(ZoneOffset.UTC).withSecond(0).withNano(0);
-        List<MedicationReminder> due = reminderRepository.findDueReminders(now);
+        LocalTime now = LocalTime.now(ZoneOffset.UTC);
+        List<MedicationReminder> due = reminderRepository.findDueReminders(now.getHour(), now.getMinute());
 
         for (MedicationReminder reminder : due) {
             try {

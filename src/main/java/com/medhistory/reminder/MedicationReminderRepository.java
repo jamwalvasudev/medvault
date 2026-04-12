@@ -4,7 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,8 +14,8 @@ public interface MedicationReminderRepository extends JpaRepository<MedicationRe
     @Query("""
             SELECT r FROM MedicationReminder r
             WHERE r.active = true
-              AND HOUR(r.reminderTime) = HOUR(:now)
-              AND MINUTE(r.reminderTime) = MINUTE(:now)
+              AND HOUR(r.reminderTime) = :hour
+              AND MINUTE(r.reminderTime) = :minute
             """)
-    List<MedicationReminder> findDueReminders(@Param("now") LocalTime now);
+    List<MedicationReminder> findDueReminders(@Param("hour") int hour, @Param("minute") int minute);
 }
