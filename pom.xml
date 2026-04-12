@@ -174,8 +174,8 @@
                 <version>1.15.0</version>
                 <configuration>
                     <workingDirectory>frontend</workingDirectory>
-                    <nodeVersion>v20.11.1</nodeVersion>
-                    <npmVersion>10.5.0</npmVersion>
+                    <nodeVersion>v20.19.0</nodeVersion>
+                    <npmVersion>10.8.2</npmVersion>
                 </configuration>
                 <executions>
                     <execution>
