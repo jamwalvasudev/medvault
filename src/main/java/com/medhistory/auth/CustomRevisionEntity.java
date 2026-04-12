@@ -11,12 +11,15 @@ import org.hibernate.envers.RevisionNumber;
 import org.hibernate.envers.RevisionTimestamp;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
 @Table(name = "revinfo")
 @RevisionEntity(CustomRevisionListener.class)
 public class CustomRevisionEntity implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,4 +42,16 @@ public class CustomRevisionEntity implements Serializable {
 
     public UUID getModifiedBy() { return modifiedBy; }
     public void setModifiedBy(UUID modifiedBy) { this.modifiedBy = modifiedBy; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CustomRevisionEntity other)) return false;
+        return rev == other.rev;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rev);
+    }
 }
