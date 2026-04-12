@@ -1,5 +1,5 @@
-# Build stage
-FROM eclipse-temurin:21-jdk AS build
+# Build stage — Maven + Node in one image
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
 # Install Node.js for the frontend build
@@ -8,18 +8,14 @@ RUN apt-get update && apt-get install -y curl && \
     apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 
+# Cache Maven dependencies first
 COPY pom.xml .
-COPY .mvn .mvn
-COPY mvnw .
-RUN chmod +x mvnw
+RUN mvn dependency:go-offline -q
 
-# Cache Maven dependencies
-RUN ./mvnw dependency:go-offline -q
-
+# Build (frontend-maven-plugin will install Node deps + build React)
 COPY src src
 COPY frontend frontend
-
-RUN ./mvnw package -q -DskipTests
+RUN mvn package -q -DskipTests
 
 # Runtime stage
 FROM eclipse-temurin:21-jre
