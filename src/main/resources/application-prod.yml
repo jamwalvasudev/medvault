@@ -1,5 +1,7 @@
 spring:
   datasource:
+    # DATABASE_URL must include credentials (e.g. Neon JDBC URL format):
+    # jdbc:postgresql://host/db?user=USER&password=PASS&sslmode=require
     url: ${DATABASE_URL}
   security:
     oauth2:

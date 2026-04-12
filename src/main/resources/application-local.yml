@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/medhistory
-    username: medhistory
-    password: medhistory
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/medhistory}
+    username: ${DB_USERNAME:medhistory}
+    password: ${DB_PASSWORD:medhistory}
   security:
     oauth2:
       client:
