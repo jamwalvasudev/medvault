@@ -46,7 +46,9 @@ public class VisitService {
     }
 
     public Visit update(UUID userId, UUID visitId, VisitRequest req) {
-        Visit visit = getById(userId, visitId);
+        Visit visit = visitRepository.findById(visitId)
+                .orElseThrow(() -> new EntityNotFoundException("Visit not found"));
+        assertOwner(userId, visit);
         applyRequest(visit, req);
         return visitRepository.save(visit);
     }

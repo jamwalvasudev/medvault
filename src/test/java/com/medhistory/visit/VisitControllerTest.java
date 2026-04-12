@@ -41,7 +41,7 @@ class VisitControllerTest {
 
     @BeforeEach
     void setUp() {
-        when(meterRegistry.counter(any(String.class), any(String[].class))).thenReturn(mock(Counter.class));
+        when(meterRegistry.counter(any(String.class))).thenReturn(mock(Counter.class));
     }
 
     @Test
