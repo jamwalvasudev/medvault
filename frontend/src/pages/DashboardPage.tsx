@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api, Visit, VisitRequest } from '../api';
+import { api, type Visit, type VisitRequest } from '../api';
 import { useAuth } from '../AuthContext';
 
 const emptyForm: VisitRequest = {
