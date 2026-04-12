@@ -1,0 +1,37 @@
+CREATE TABLE specialties (
+    id         SMALLINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name       VARCHAR(100) NOT NULL UNIQUE,
+    sort_order SMALLINT NOT NULL DEFAULT 0
+);
+
+INSERT INTO specialties (name, sort_order) VALUES
+  ('General Practice',     1),
+  ('Internal Medicine',    2),
+  ('Cardiology',           3),
+  ('Dermatology',          4),
+  ('Endocrinology',        5),
+  ('Gastroenterology',     6),
+  ('Geriatrics',           7),
+  ('Gynecology',           8),
+  ('Hematology',           9),
+  ('Infectious Disease',  10),
+  ('Nephrology',          11),
+  ('Neurology',           12),
+  ('Obstetrics',          13),
+  ('Oncology',            14),
+  ('Ophthalmology',       15),
+  ('Orthopedics',         16),
+  ('ENT',                 17),
+  ('Pediatrics',          18),
+  ('Psychiatry',          19),
+  ('Pulmonology',         20),
+  ('Rheumatology',        21),
+  ('Sports Medicine',     22),
+  ('Surgery (General)',   23),
+  ('Urology',             24),
+  ('Vascular Surgery',    25),
+  ('Dentistry',           26),
+  ('Physiotherapy',       27),
+  ('Emergency Medicine',  28),
+  ('Palliative Care',     29),
+  ('Radiology',           30);
