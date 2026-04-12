@@ -1,1 +1,5 @@
 .worktrees/
+
+# Local environment — never commit
+.env.local
+.env.*.local
