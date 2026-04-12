@@ -97,9 +97,10 @@ public class AttachmentService {
     }
 
     @Transactional(readOnly = true)
-    public List<Attachment> findByVisitId(UUID userId, UUID visitId) {
+    public List<AttachmentResponse> findByVisitId(UUID userId, UUID visitId) {
         requireOwnedVisit(userId, visitId);
-        return attachmentRepository.findByVisitId(visitId);
+        return attachmentRepository.findByVisitId(visitId)
+                .stream().map(AttachmentResponse::from).toList();
     }
 
     private Visit requireOwnedVisit(UUID userId, UUID visitId) {

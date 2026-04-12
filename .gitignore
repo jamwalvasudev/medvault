@@ -3,3 +3,23 @@
 # Local environment — never commit
 .env.local
 .env.*.local
+
+# Maven build output
+target/
+
+# frontend-maven-plugin downloads Node here; re-downloaded on each build
+frontend/node/
+frontend/node_modules/
+
+# Vite build output (copied into target/ by Maven)
+frontend/dist/
+
+# Editor / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+.env.local.example
+
+.claude

@@ -21,8 +21,7 @@ public class MedicationController {
     @GetMapping
     public ResponseEntity<List<MedicationResponse>> list(@PathVariable UUID visitId) {
         UUID userId = currentUserId();
-        return ResponseEntity.ok(medicationService.findByVisitId(userId, visitId)
-                .stream().map(MedicationResponse::from).toList());
+        return ResponseEntity.ok(medicationService.findByVisitId(userId, visitId));
     }
 
     @PostMapping

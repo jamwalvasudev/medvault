@@ -26,8 +26,8 @@ public class MedicationReminderService {
         this.userRepository = userRepository;
     }
 
-    public MedicationReminder create(UUID userId, UUID medicationId, ReminderRequest req) {
-        Medication medication = medicationRepository.findById(medicationId)
+    public ReminderResponse create(UUID userId, ReminderRequest req) {
+        Medication medication = medicationRepository.findById(req.medicationId())
                 .orElseThrow(() -> new IllegalArgumentException("Medication not found"));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -36,13 +36,13 @@ public class MedicationReminderService {
         reminder.setMedication(medication);
         reminder.setUser(user);
         reminder.setReminderTime(req.reminderTime());
-        return reminderRepository.save(reminder);
+        return ReminderResponse.from(reminderRepository.save(reminder));
     }
 
-    public MedicationReminder toggle(UUID userId, UUID reminderId) {
+    public ReminderResponse toggle(UUID userId, UUID reminderId) {
         MedicationReminder reminder = findOwned(userId, reminderId);
         reminder.setActive(!reminder.isActive());
-        return reminderRepository.save(reminder);
+        return ReminderResponse.from(reminderRepository.save(reminder));
     }
 
     public void delete(UUID userId, UUID reminderId) {
@@ -51,13 +51,9 @@ public class MedicationReminderService {
     }
 
     @Transactional(readOnly = true)
-    public List<MedicationReminder> findByMedicationId(UUID userId, UUID medicationId) {
-        Medication medication = medicationRepository.findById(medicationId)
-                .orElseThrow(() -> new IllegalArgumentException("Medication not found"));
-        if (!medication.getVisit().getUser().getId().equals(userId)) {
-            throw new SecurityException("Access denied");
-        }
-        return reminderRepository.findByMedicationId(medicationId);
+    public List<ReminderResponse> findByUserId(UUID userId) {
+        return reminderRepository.findByUserId(userId)
+                .stream().map(ReminderResponse::from).toList();
     }
 
     private MedicationReminder findOwned(UUID userId, UUID reminderId) {

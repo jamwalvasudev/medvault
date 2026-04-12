@@ -58,9 +58,10 @@ public class RecommendationService {
     }
 
     @Transactional(readOnly = true)
-    public List<Recommendation> findByVisitId(UUID userId, UUID visitId) {
+    public List<RecommendationResponse> findByVisitId(UUID userId, UUID visitId) {
         requireOwnedVisit(userId, visitId);
-        return recommendationRepository.findByVisitId(visitId);
+        return recommendationRepository.findByVisitId(visitId)
+                .stream().map(RecommendationResponse::from).toList();
     }
 
     private Visit requireOwnedVisit(UUID userId, UUID visitId) {

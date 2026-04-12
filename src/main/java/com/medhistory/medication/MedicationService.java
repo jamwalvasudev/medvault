@@ -56,9 +56,10 @@ public class MedicationService {
     }
 
     @Transactional(readOnly = true)
-    public List<Medication> findByVisitId(UUID userId, UUID visitId) {
+    public List<MedicationResponse> findByVisitId(UUID userId, UUID visitId) {
         requireOwnedVisit(userId, visitId);
-        return medicationRepository.findByVisitId(visitId);
+        return medicationRepository.findByVisitId(visitId)
+                .stream().map(MedicationResponse::from).toList();
     }
 
     @Transactional(readOnly = true)

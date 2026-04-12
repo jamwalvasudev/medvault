@@ -11,6 +11,8 @@ public interface MedicationReminderRepository extends JpaRepository<MedicationRe
 
     List<MedicationReminder> findByMedicationId(UUID medicationId);
 
+    List<MedicationReminder> findByUserId(UUID userId);
+
     @Query("""
             SELECT r FROM MedicationReminder r
             WHERE r.active = true

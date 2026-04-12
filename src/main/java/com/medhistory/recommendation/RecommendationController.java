@@ -20,8 +20,7 @@ public class RecommendationController {
 
     @GetMapping
     public ResponseEntity<List<RecommendationResponse>> list(@PathVariable UUID visitId) {
-        return ResponseEntity.ok(recommendationService.findByVisitId(currentUserId(), visitId)
-                .stream().map(RecommendationResponse::from).toList());
+        return ResponseEntity.ok(recommendationService.findByVisitId(currentUserId(), visitId));
     }
 
     @PostMapping

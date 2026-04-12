@@ -74,10 +74,13 @@ class MedicationServiceTest {
     void findByVisitId_returnsMedications() {
         Medication m = new Medication();
         m.setId(UUID.randomUUID());
+        m.setVisit(visit);
+        m.setName("Amoxicillin");
         when(visitRepository.findById(visitId)).thenReturn(Optional.of(visit));
         when(medicationRepository.findByVisitId(visitId)).thenReturn(List.of(m));
 
-        List<Medication> results = medicationService.findByVisitId(userId, visitId);
+        List<MedicationResponse> results = medicationService.findByVisitId(userId, visitId);
         assertThat(results).hasSize(1);
+        assertThat(results.get(0).name()).isEqualTo("Amoxicillin");
     }
 }

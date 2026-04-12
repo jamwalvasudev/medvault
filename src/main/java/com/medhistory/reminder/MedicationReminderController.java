@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/medications/{medicationId}/reminders")
+@RequestMapping("/api/reminders")
 public class MedicationReminderController {
 
     private final MedicationReminderService reminderService;
@@ -19,26 +19,22 @@ public class MedicationReminderController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ReminderResponse>> list(@PathVariable UUID medicationId) {
-        return ResponseEntity.ok(reminderService.findByMedicationId(currentUserId(), medicationId)
-                .stream().map(ReminderResponse::from).toList());
+    public ResponseEntity<List<ReminderResponse>> list() {
+        return ResponseEntity.ok(reminderService.findByUserId(currentUserId()));
     }
 
     @PostMapping
-    public ResponseEntity<ReminderResponse> create(@PathVariable UUID medicationId,
-                                                   @Valid @RequestBody ReminderRequest req) {
-        return ResponseEntity.status(201)
-                .body(ReminderResponse.from(reminderService.create(currentUserId(), medicationId, req)));
+    public ResponseEntity<ReminderResponse> create(@Valid @RequestBody ReminderRequest req) {
+        return ResponseEntity.status(201).body(reminderService.create(currentUserId(), req));
     }
 
-    @PutMapping("/{reminderId}/toggle")
-    public ResponseEntity<ReminderResponse> toggle(@PathVariable UUID medicationId,
-                                                   @PathVariable UUID reminderId) {
-        return ResponseEntity.ok(ReminderResponse.from(reminderService.toggle(currentUserId(), reminderId)));
+    @PostMapping("/{reminderId}/toggle")
+    public ResponseEntity<ReminderResponse> toggle(@PathVariable UUID reminderId) {
+        return ResponseEntity.ok(reminderService.toggle(currentUserId(), reminderId));
     }
 
     @DeleteMapping("/{reminderId}")
-    public ResponseEntity<Void> delete(@PathVariable UUID medicationId, @PathVariable UUID reminderId) {
+    public ResponseEntity<Void> delete(@PathVariable UUID reminderId) {
         reminderService.delete(currentUserId(), reminderId);
         return ResponseEntity.noContent().build();
     }

@@ -21,8 +21,7 @@ public class AttachmentController {
 
     @GetMapping
     public ResponseEntity<List<AttachmentResponse>> list(@PathVariable UUID visitId) {
-        return ResponseEntity.ok(attachmentService.findByVisitId(currentUserId(), visitId)
-                .stream().map(AttachmentResponse::from).toList());
+        return ResponseEntity.ok(attachmentService.findByVisitId(currentUserId(), visitId));
     }
 
     @PostMapping(consumes = "multipart/form-data")
@@ -34,7 +33,7 @@ public class AttachmentController {
         return ResponseEntity.status(201).body(AttachmentResponse.from(attachment));
     }
 
-    @GetMapping("/{attachmentId}/url")
+    @GetMapping("/{attachmentId}/presign")
     public ResponseEntity<Map<String, String>> presignedUrl(@PathVariable UUID visitId,
                                                             @PathVariable UUID attachmentId) {
         String url = attachmentService.generatePresignedUrl(currentUserId(), attachmentId);
