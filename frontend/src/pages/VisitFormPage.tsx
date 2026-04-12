@@ -19,6 +19,11 @@ export default function VisitFormPage() {
   const [form, setForm] = useState<VisitRequest>(empty);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [specialties, setSpecialties] = useState<{ id: number; name: string }[]>([]);
+  const [specialtyFailed, setSpecialtyFailed] = useState(false);
+  const [selectValue, setSelectValue] = useState('');
+  const [customSpecialty, setCustomSpecialty] = useState('');
+  const [specialtyInitialized, setSpecialtyInitialized] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -35,16 +40,36 @@ export default function VisitFormPage() {
     }).catch((e) => setError(e.message));
   }, [id]);
 
+  // Load specialty list on mount
+  useEffect(() => {
+    api.specialties.list()
+      .then(setSpecialties)
+      .catch(() => setSpecialtyFailed(true));
+  }, []);
+
+  // Sync dropdown once when editing: runs when specialties loaded AND form.specialty is known
+  useEffect(() => {
+    if (specialtyInitialized || specialties.length === 0) return;
+    if (form.specialty) {
+      const match = specialties.find((s) => s.name === form.specialty);
+      setSelectValue(match ? form.specialty : '__other__');
+      if (!match) setCustomSpecialty(form.specialty);
+    }
+    setSpecialtyInitialized(true);
+  }, [specialties, form.specialty, specialtyInitialized]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
+    const effectiveSpecialty = selectValue === '__other__' ? customSpecialty : selectValue;
+    const submitData: VisitRequest = { ...form, specialty: effectiveSpecialty };
     try {
       if (isEdit && id) {
-        await api.visits.update(id, form);
+        await api.visits.update(id, submitData);
         navigate(`/visits/${id}`);
       } else {
-        const v = await api.visits.create(form);
+        const v = await api.visits.create(submitData);
         navigate(`/visits/${v.id}`);
       }
     } catch (e: unknown) {
@@ -85,8 +110,35 @@ export default function VisitFormPage() {
           <div style={styles.row}>
             <label style={styles.label}>
               Specialty
-              <input style={styles.input} value={form.specialty ?? ''}
-                placeholder="GP, Cardiology…" onChange={field('specialty')} />
+              {specialtyFailed ? (
+                <input style={styles.input} value={form.specialty ?? ''}
+                  placeholder="GP, Cardiology…" onChange={field('specialty')} />
+              ) : (
+                <>
+                  <select
+                    style={styles.input}
+                    value={selectValue}
+                    onChange={(e) => {
+                      setSelectValue(e.target.value);
+                      if (e.target.value !== '__other__') setCustomSpecialty('');
+                    }}
+                  >
+                    <option value="">— select specialty —</option>
+                    {specialties.map((s) => (
+                      <option key={s.id} value={s.name}>{s.name}</option>
+                    ))}
+                    <option value="__other__">Other…</option>
+                  </select>
+                  {selectValue === '__other__' && (
+                    <input
+                      style={{ ...styles.input, marginTop: 6 }}
+                      value={customSpecialty}
+                      placeholder="Enter specialty"
+                      onChange={(e) => setCustomSpecialty(e.target.value)}
+                    />
+                  )}
+                </>
+              )}
             </label>
             <label style={styles.label}>
               Clinic / Hospital
