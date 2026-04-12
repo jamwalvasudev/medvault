@@ -52,7 +52,7 @@ export default function VisitFormPage() {
     if (specialtyInitializedRef.current || specialties.length === 0) return;
     if (isEdit && !form.specialty) return; // wait for visit data to arrive
     const match = specialties.find((s) => s.name === form.specialty);
-    setSelectValue(match ? form.specialty : (form.specialty ? '__other__' : ''));
+    setSelectValue(match ? (form.specialty ?? '') : (form.specialty ? '__other__' : ''));
     if (form.specialty && !match) setCustomSpecialty(form.specialty);
     specialtyInitializedRef.current = true;
   }, [specialties, form.specialty, isEdit]);

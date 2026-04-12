@@ -60,9 +60,14 @@ class RecommendationServiceTest {
     void findByVisitId_returnsAll() {
         Recommendation r = new Recommendation();
         r.setId(UUID.randomUUID());
+        r.setVisit(visit);
+        r.setType("physical");
+        r.setDescription("30 min walk daily");
         when(visitRepository.findById(visitId)).thenReturn(Optional.of(visit));
         when(recommendationRepository.findByVisitId(visitId)).thenReturn(List.of(r));
 
-        assertThat(recommendationService.findByVisitId(userId, visitId)).hasSize(1);
+        List<RecommendationResponse> results = recommendationService.findByVisitId(userId, visitId);
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).description()).isEqualTo("30 min walk daily");
     }
 }
