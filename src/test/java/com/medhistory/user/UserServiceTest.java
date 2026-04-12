@@ -6,10 +6,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -68,5 +70,15 @@ class UserServiceTest {
         User result = userService.getById(id);
 
         assertThat(result.getId()).isEqualTo(id);
+    }
+
+    @Test
+    void getById_throwsEntityNotFoundWhenMissing() {
+        UUID id = UUID.randomUUID();
+        when(userRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.getById(id))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining(id.toString());
     }
 }

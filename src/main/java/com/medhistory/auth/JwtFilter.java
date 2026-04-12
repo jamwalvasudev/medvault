@@ -32,20 +32,23 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
-        extractToken(request)
-                .filter(jwtService::isValid)
-                .ifPresent(token -> {
-                    UUID userId = jwtService.extractUserId(token);
-                    MDC.put("userId", userId.toString());
-                    var auth = new UsernamePasswordAuthenticationToken(
-                            userId.toString(),
-                            null,
-                            List.of(new SimpleGrantedAuthority("ROLE_USER"))
-                    );
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                });
-        chain.doFilter(request, response);
-        MDC.remove("userId");
+        try {
+            extractToken(request)
+                    .filter(jwtService::isValid)
+                    .ifPresent(token -> {
+                        UUID userId = jwtService.extractUserId(token);
+                        MDC.put("userId", userId.toString());
+                        var auth = new UsernamePasswordAuthenticationToken(
+                                userId.toString(),
+                                null,
+                                List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                        );
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    });
+            chain.doFilter(request, response);
+        } finally {
+            MDC.remove("userId");
+        }
     }
 
     private Optional<String> extractToken(HttpServletRequest request) {

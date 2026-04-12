@@ -1,5 +1,6 @@
 package com.medhistory.user;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,6 @@ public class UserService {
     @Transactional(readOnly = true)
     public User getById(UUID id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + id));
     }
 }

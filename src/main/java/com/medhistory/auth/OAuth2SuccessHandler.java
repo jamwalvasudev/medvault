@@ -19,13 +19,16 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final UserService userService;
     private final JwtService jwtService;
     private final String frontendUrl;
+    private final int cookieMaxAgeSeconds;
 
     public OAuth2SuccessHandler(UserService userService,
                                 JwtService jwtService,
-                                @Value("${app.frontend.url}") String frontendUrl) {
+                                @Value("${app.frontend.url}") String frontendUrl,
+                                @Value("${app.jwt.expiration-ms}") long jwtExpirationMs) {
         this.userService = userService;
         this.jwtService = jwtService;
         this.frontendUrl = frontendUrl;
+        this.cookieMaxAgeSeconds = (int) (jwtExpirationMs / 1000);
     }
 
     @Override
@@ -45,8 +48,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         Cookie cookie = new Cookie("medhistory-token", token);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
-        cookie.setMaxAge(86400); // 24 hours
-        // cookie.setSecure(true); — enabled in prod via profile
+        cookie.setMaxAge(cookieMaxAgeSeconds); // matches app.jwt.expiration-ms
+        // cookie.setSecure(true); — enabled in prod via SecurityConfig (https-only deployment)
         response.addCookie(cookie);
 
         response.sendRedirect(frontendUrl + "/");

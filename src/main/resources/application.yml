@@ -32,6 +32,7 @@ server:
 
 app:
   jwt:
+    secret: ${JWT_SECRET}     # required — set in profile or environment
     expiration-ms: 86400000   # 24 hours
   frontend:
     url: http://localhost:5173
