@@ -40,6 +40,7 @@ public class RecommendationService {
         requireOwnedVisit(userId, visitId);
         Recommendation rec = recommendationRepository.findById(recId)
                 .orElseThrow(() -> new IllegalArgumentException("Recommendation not found"));
+        if (!rec.getVisit().getId().equals(visitId)) throw new SecurityException("Access denied");
         rec.setType(req.type());
         rec.setDescription(req.description());
         Recommendation saved = recommendationRepository.save(rec);
@@ -49,7 +50,10 @@ public class RecommendationService {
 
     public void delete(UUID userId, UUID visitId, UUID recId) {
         requireOwnedVisit(userId, visitId);
-        recommendationRepository.deleteById(recId);
+        Recommendation rec = recommendationRepository.findById(recId)
+                .orElseThrow(() -> new IllegalArgumentException("Recommendation not found"));
+        if (!rec.getVisit().getId().equals(visitId)) throw new SecurityException("Access denied");
+        recommendationRepository.delete(rec);
         visitService.refreshSearchVector(visitId);
     }
 

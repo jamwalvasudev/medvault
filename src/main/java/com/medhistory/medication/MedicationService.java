@@ -39,6 +39,7 @@ public class MedicationService {
         requireOwnedVisit(userId, visitId);
         Medication med = medicationRepository.findById(medicationId)
                 .orElseThrow(() -> new IllegalArgumentException("Medication not found"));
+        if (!med.getVisit().getId().equals(visitId)) throw new SecurityException("Access denied");
         apply(med, req);
         Medication saved = medicationRepository.save(med);
         visitService.refreshSearchVector(visitId);
@@ -47,7 +48,10 @@ public class MedicationService {
 
     public void delete(UUID userId, UUID visitId, UUID medicationId) {
         requireOwnedVisit(userId, visitId);
-        medicationRepository.deleteById(medicationId);
+        Medication med = medicationRepository.findById(medicationId)
+                .orElseThrow(() -> new IllegalArgumentException("Medication not found"));
+        if (!med.getVisit().getId().equals(visitId)) throw new SecurityException("Access denied");
+        medicationRepository.delete(med);
         visitService.refreshSearchVector(visitId);
     }
 

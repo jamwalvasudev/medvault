@@ -68,8 +68,9 @@ public class AttachmentService {
         attachment.setContentType(file.getContentType());
         attachment.setSizeBytes(file.getSize());
 
+        Attachment saved = attachmentRepository.save(attachment);
         meterRegistry.counter("medhistory.attachments.uploaded").increment();
-        return attachmentRepository.save(attachment);
+        return saved;
     }
 
     @Transactional(readOnly = true)
