@@ -199,4 +199,8 @@ export const api = {
         body: JSON.stringify({ endpoint }),
       }),
   },
+
+  specialties: {
+    list: () => request<{ id: number; name: string }[]>('/api/specialties'),
+  },
 };
