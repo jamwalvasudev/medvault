@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, type VisitRequest } from '../api';
 
@@ -23,7 +23,7 @@ export default function VisitFormPage() {
   const [specialtyFailed, setSpecialtyFailed] = useState(false);
   const [selectValue, setSelectValue] = useState('');
   const [customSpecialty, setCustomSpecialty] = useState('');
-  const [specialtyInitialized, setSpecialtyInitialized] = useState(false);
+  const specialtyInitializedRef = useRef(false);
 
   useEffect(() => {
     if (!id) return;
@@ -49,20 +49,23 @@ export default function VisitFormPage() {
 
   // Sync dropdown once when editing: runs when specialties loaded AND form.specialty is known
   useEffect(() => {
-    if (specialtyInitialized || specialties.length === 0) return;
-    if (form.specialty) {
-      const match = specialties.find((s) => s.name === form.specialty);
-      setSelectValue(match ? form.specialty : '__other__');
-      if (!match) setCustomSpecialty(form.specialty);
-    }
-    setSpecialtyInitialized(true);
-  }, [specialties, form.specialty, specialtyInitialized]);
+    if (specialtyInitializedRef.current || specialties.length === 0) return;
+    if (isEdit && !form.specialty) return; // wait for visit data to arrive
+    const match = specialties.find((s) => s.name === form.specialty);
+    setSelectValue(match ? form.specialty : (form.specialty ? '__other__' : ''));
+    if (form.specialty && !match) setCustomSpecialty(form.specialty);
+    specialtyInitializedRef.current = true;
+  }, [specialties, form.specialty, isEdit]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
-    const effectiveSpecialty = selectValue === '__other__' ? customSpecialty : selectValue;
+    const effectiveSpecialty = specialtyFailed
+      ? (form.specialty ?? '')
+      : selectValue === '__other__'
+      ? customSpecialty
+      : selectValue;
     const submitData: VisitRequest = { ...form, specialty: effectiveSpecialty };
     try {
       if (isEdit && id) {
@@ -79,8 +82,9 @@ export default function VisitFormPage() {
     }
   };
 
-  const field = (key: keyof VisitRequest) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setForm({ ...form, [key]: e.target.value });
+  const field = (key: keyof VisitRequest) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
   return (
     <div style={styles.page}>
