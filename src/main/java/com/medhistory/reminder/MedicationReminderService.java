@@ -52,6 +52,11 @@ public class MedicationReminderService {
 
     @Transactional(readOnly = true)
     public List<MedicationReminder> findByMedicationId(UUID userId, UUID medicationId) {
+        Medication medication = medicationRepository.findById(medicationId)
+                .orElseThrow(() -> new IllegalArgumentException("Medication not found"));
+        if (!medication.getVisit().getUser().getId().equals(userId)) {
+            throw new SecurityException("Access denied");
+        }
         return reminderRepository.findByMedicationId(medicationId);
     }
 

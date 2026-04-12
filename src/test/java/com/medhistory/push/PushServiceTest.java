@@ -1,5 +1,6 @@
 package com.medhistory.push;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.medhistory.user.User;
 import nl.martijndwars.webpush.Notification;
 import nl.martijndwars.webpush.PushAsyncService;
@@ -32,7 +33,7 @@ class PushServiceTest {
         if (Security.getProvider("BC") == null) {
             Security.addProvider(new BouncyCastleProvider());
         }
-        pushService = new PushService(subscriptionRepository, pushAsyncService);
+        pushService = new PushService(subscriptionRepository, pushAsyncService, new ObjectMapper());
     }
 
     @Test

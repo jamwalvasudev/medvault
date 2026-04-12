@@ -39,4 +39,5 @@ public class PushSubscription {
     public void setP256dh(String p256dh) { this.p256dh = p256dh; }
     public String getAuth() { return auth; }
     public void setAuth(String auth) { this.auth = auth; }
+    public Instant getCreatedAt() { return createdAt; }
 }
