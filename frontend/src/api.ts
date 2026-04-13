@@ -3,6 +3,7 @@ export interface User {
   email: string;
   name: string;
   picture?: string;
+  timezone: string;
 }
 
 export interface Visit {
@@ -98,6 +99,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   me: () => request<User>('/api/users/me'),
+
+  users: {
+    updateTimezone: (timezone: string) =>
+      request<void>('/api/users/me/timezone', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timezone }),
+      }),
+  },
 
   visits: {
     list: () =>
