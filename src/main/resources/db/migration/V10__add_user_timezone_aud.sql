@@ -1,0 +1,1 @@
+ALTER TABLE users_aud ADD COLUMN timezone VARCHAR(64);
