@@ -118,7 +118,7 @@ export const api = {
     delete: (id: string) =>
       request<void>(`/api/visits/${id}`, { method: 'DELETE' }),
     search: (q: string) =>
-      request<{ content: Visit[] }>(`/api/visits/search?q=${encodeURIComponent(q)}`).then((p) => p.content),
+      request<Visit[]>(`/api/visits/search?q=${encodeURIComponent(q)}`),
   },
 
   medications: {
