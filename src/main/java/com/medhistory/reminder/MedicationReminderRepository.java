@@ -20,4 +20,7 @@ public interface MedicationReminderRepository extends JpaRepository<MedicationRe
               AND MINUTE(r.reminderTime) = :minute
             """)
     List<MedicationReminder> findDueReminders(@Param("hour") int hour, @Param("minute") int minute);
+
+    @Query("SELECT r FROM MedicationReminder r JOIN FETCH r.user WHERE r.active = true")
+    List<MedicationReminder> findAllActive();
 }

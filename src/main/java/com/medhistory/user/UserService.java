@@ -30,4 +30,11 @@ public class UserService {
         return userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found: " + id));
     }
+
+    public void updateTimezone(UUID userId, String timezone) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + userId));
+        user.setTimezone(timezone);
+        userRepository.save(user);
+    }
 }

@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.List;
 
 @Component
@@ -33,21 +33,38 @@ public class ReminderScheduler {
     @Scheduled(fixedDelay = 60_000)
     @Transactional
     public void fireReminders() {
-        LocalTime now = LocalTime.now(ZoneOffset.UTC);
-        List<MedicationReminder> due = reminderRepository.findDueReminders(now.getHour(), now.getMinute());
+        Instant now = Instant.now();
+        List<MedicationReminder> active = reminderRepository.findAllActive();
 
-        for (MedicationReminder reminder : due) {
+        for (MedicationReminder reminder : active) {
             try {
-                String medName = reminder.getMedication().getName();
-                pushService.sendToUser(reminder.getUser().getId(),
-                        "Medication Reminder",
-                        "Time to take: " + medName);
-                reminder.setLastSentAt(Instant.now());
-                reminderRepository.save(reminder);
-                meterRegistry.counter("medhistory.reminders.sent").increment();
+                String tz = reminder.getUser().getTimezone();
+                ZoneId zone = resolveZone(tz);
+                LocalTime localNow = LocalTime.ofInstant(now, zone);
+                LocalTime rt = reminder.getReminderTime();
+
+                if (localNow.getHour() == rt.getHour() && localNow.getMinute() == rt.getMinute()) {
+                    String medName = reminder.getMedication().getName();
+                    pushService.sendToUser(reminder.getUser().getId(),
+                            "Medication Reminder",
+                            "Time to take: " + medName);
+                    reminder.setLastSentAt(now);
+                    reminderRepository.save(reminder);
+                    meterRegistry.counter("medhistory.reminders.sent").increment();
+                }
             } catch (Exception e) {
-                log.error("Failed to send reminder id={}: {}", reminder.getId(), e.getMessage());
+                log.error("Failed to process reminder id={}: {}", reminder.getId(), e.getMessage());
             }
+        }
+    }
+
+    private ZoneId resolveZone(String tz) {
+        if (tz == null || tz.isBlank()) return ZoneId.of("UTC");
+        try {
+            return ZoneId.of(tz);
+        } catch (Exception e) {
+            log.warn("Invalid timezone '{}', falling back to UTC", tz);
+            return ZoneId.of("UTC");
         }
     }
 }

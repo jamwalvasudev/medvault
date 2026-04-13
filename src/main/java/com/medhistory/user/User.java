@@ -37,4 +37,10 @@ public class User extends BaseAuditEntity {
     public void setName(String name) { this.name = name; }
     public String getProfilePicture() { return profilePicture; }
     public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
+
+    @Column(name = "timezone", nullable = false)
+    private String timezone = "UTC";
+
+    public String getTimezone() { return timezone; }
+    public void setTimezone(String timezone) { this.timezone = timezone; }
 }
