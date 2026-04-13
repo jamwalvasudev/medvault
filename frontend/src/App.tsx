@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { AuthProvider, useAuth } from './AuthContext';
+import AppShell from './components/AppShell';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import VisitDetailPage from './pages/VisitDetailPage';
@@ -11,22 +13,31 @@ function AppRoutes() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontFamily: 'system-ui' }}>
+      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
         Loading…
       </div>
     );
   }
 
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="*" element={<LoginPage />} />
+      </Routes>
+    );
+  }
+
   return (
-    <Routes>
-      <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
-      <Route path="/" element={user ? <DashboardPage /> : <Navigate to="/login" replace />} />
-      <Route path="/visits/new" element={user ? <VisitFormPage /> : <Navigate to="/login" replace />} />
-      <Route path="/visits/:id" element={user ? <VisitDetailPage /> : <Navigate to="/login" replace />} />
-      <Route path="/visits/:id/edit" element={user ? <VisitFormPage /> : <Navigate to="/login" replace />} />
-      <Route path="/search" element={user ? <SearchPage /> : <Navigate to="/login" replace />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <AppShell>
+      <Routes>
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/visits/new" element={<VisitFormPage />} />
+        <Route path="/visits/:id" element={<VisitDetailPage />} />
+        <Route path="/visits/:id/edit" element={<VisitFormPage />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AppShell>
   );
 }
 
@@ -35,6 +46,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <AppRoutes />
+        <Toaster position="bottom-right" richColors />
       </AuthProvider>
     </BrowserRouter>
   );
