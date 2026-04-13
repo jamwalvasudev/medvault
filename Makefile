@@ -4,7 +4,7 @@
 dev: infra
 	@mkdir -p logs
 	@echo "Starting backend..."
-	@./mvnw spring-boot:run -Dspring-boot.run.profiles=local > logs/backend.log 2>&1 & echo $$! > logs/backend.pid
+	@mvn spring-boot:run -Dspring-boot.run.profiles=local > logs/backend.log 2>&1 & echo $$! > logs/backend.pid
 	@echo "Starting frontend..."
 	@cd frontend && npm run dev > ../logs/frontend.log 2>&1 & echo $$! > logs/frontend.pid
 	@echo "All services started. Tailing logs (Ctrl+C to stop tailing — services keep running)."
@@ -43,7 +43,7 @@ infra:
 
 ## build: Build the production fat JAR (includes frontend)
 build:
-	./mvnw package -DskipTests
+	mvn package -DskipTests
 
 ## clean: Remove log files
 clean:
