@@ -14,6 +14,9 @@ frontend/node_modules/
 # Vite build output (copied into target/ by Maven)
 frontend/dist/
 
+# Local dev process logs and PIDs
+logs/
+
 # Editor / OS
 .idea/
 .vscode/
