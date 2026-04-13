@@ -1,4 +1,4 @@
-.PHONY: dev stop logs infra build help
+.PHONY: dev stop logs infra build clean help
 
 ## dev: Start infra, backend, and frontend (all-in-one)
 dev: infra
@@ -13,13 +13,17 @@ dev: infra
 ## stop: Stop backend and frontend processes
 stop:
 	@if [ -f logs/backend.pid ]; then \
-		kill $$(cat logs/backend.pid) 2>/dev/null && echo "Backend stopped." || echo "Backend was not running."; \
+		kill $$(cat logs/backend.pid) 2>/dev/null; \
+		pkill -P $$(cat logs/backend.pid) 2>/dev/null; \
+		echo "Backend stopped."; \
 		rm -f logs/backend.pid; \
 	else \
 		echo "No backend PID file found."; \
 	fi
 	@if [ -f logs/frontend.pid ]; then \
-		kill $$(cat logs/frontend.pid) 2>/dev/null && echo "Frontend stopped." || echo "Frontend was not running."; \
+		kill $$(cat logs/frontend.pid) 2>/dev/null; \
+		pkill -P $$(cat logs/frontend.pid) 2>/dev/null; \
+		echo "Frontend stopped."; \
 		rm -f logs/frontend.pid; \
 	else \
 		echo "No frontend PID file found."; \
@@ -33,12 +37,17 @@ logs:
 infra:
 	docker compose up -d
 	@echo "Waiting for Postgres to be healthy..."
-	@sleep 3
+	@until docker compose ps --status healthy 2>/dev/null | grep -q postgres; do sleep 1; done
+	@echo "Postgres is ready."
 
 ## build: Build the production fat JAR (includes frontend)
 build:
 	./mvnw package -DskipTests
 
+## clean: Remove log files
+clean:
+	rm -rf logs/
+
 ## help: Show available targets
 help:
-	@grep -E '^## ' Makefile | sed 's/## //' | column -t -s ':'
+	@grep -E '^## ' $(MAKEFILE_LIST) | sed 's/## //' | column -t -s ':'
