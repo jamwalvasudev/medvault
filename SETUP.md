@@ -51,23 +51,17 @@ npx web-push generate-vapid-keys
 
 Open the MinIO console at http://localhost:9001 (admin/password), create a bucket named `medhistory`.
 
-### 4. Run the backend
+### 4. Start the application
 
 ```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+make dev
 ```
 
-The backend starts on http://localhost:8080.
+This starts the backend (`:8080`) and frontend dev server (`:5173`) together and tails their logs. Press `Ctrl+C` to stop tailing — services keep running. Use `make stop` to shut them down.
 
-### 5. Run the frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-The frontend starts on http://localhost:5173 and proxies `/api` to the backend.
+Alternatively, run them separately:
+- Backend: `./mvnw spring-boot:run -Dspring-boot.run.profiles=local`
+- Frontend: `cd frontend && npm run dev`
 
 ### 6. Sign in
 
