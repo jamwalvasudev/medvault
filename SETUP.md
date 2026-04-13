@@ -63,7 +63,7 @@ Alternatively, run them separately:
 - Backend: `./mvnw spring-boot:run -Dspring-boot.run.profiles=local`
 - Frontend: `cd frontend && npm run dev`
 
-### 6. Sign in
+### 5. Sign in
 
 Open http://localhost:5173, click "Sign in with Google", and complete the OAuth flow.
 
