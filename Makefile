@@ -36,9 +36,10 @@ logs:
 ## infra: Start Postgres and MinIO via docker compose
 infra:
 	docker compose up -d
-	@echo "Waiting for Postgres to be healthy..."
-	@until docker compose ps --status healthy 2>/dev/null | grep -q postgres; do sleep 1; done
-	@echo "Postgres is ready."
+	@docker compose exec -T postgres pg_isready -U medhistory -q 2>/dev/null && echo "Postgres is ready." || \
+		(echo "Waiting for Postgres to be healthy..."; \
+		until docker compose exec -T postgres pg_isready -U medhistory -q 2>/dev/null; do sleep 1; done; \
+		echo "Postgres is ready.")
 
 ## build: Build the production fat JAR (includes frontend)
 build:
