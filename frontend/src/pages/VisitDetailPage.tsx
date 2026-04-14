@@ -1,37 +1,18 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  MapPin, Pill, ClipboardList, Paperclip, Bell,
-  Plus, X, FileText, Trash2,
-} from 'lucide-react';
-import { toast } from 'sonner';
+  BellOutlined, CloseOutlined, DeleteOutlined, EnvironmentOutlined,
+  FileOutlined, FileTextOutlined, MedicineBoxOutlined, PaperClipOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
+import {
+  Alert, App, Button, Card, Divider, Flex, Input, Skeleton, Switch, Tabs, Tag, Typography,
+} from 'antd';
 import {
   api,
-  type Visit, type Medication, type MedicationRequest,
-  type Recommendation, type RecommendationRequest,
-  type Attachment, type MedicationReminder,
+  type Attachment, type Medication, type MedicationReminder, type MedicationRequest,
+  type Recommendation, type RecommendationRequest, type Visit,
 } from '@/api';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Separator } from '@/components/ui/separator';
 import PageHeader from '@/components/PageHeader';
 
 const formatBytes = (b: number) =>
@@ -40,6 +21,7 @@ const formatBytes = (b: number) =>
 export default function VisitDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { message, modal } = App.useApp();
 
   const [visit, setVisit] = useState<Visit | null>(null);
   const [meds, setMeds] = useState<Medication[]>([]);
@@ -72,20 +54,25 @@ export default function VisitDetailPage() {
       api.attachments.list(id),
       api.reminders.list(),
     ]).then(([v, m, r, a, rem]) => {
-      setVisit(v);
-      setMeds(m);
-      setRecs(r);
-      setAttachments(a);
-      setReminders(rem);
+      setVisit(v); setMeds(m); setRecs(r); setAttachments(a); setReminders(rem);
       setLoading(false);
     }).catch((e) => { setPageError(e.message); setLoading(false); });
   }, [id]);
 
-  const handleDeleteVisit = async () => {
-    if (!id) return;
-    await api.visits.delete(id).catch((e) => setPageError(e.message));
-    toast.success('Visit deleted');
-    navigate('/');
+  const handleDeleteVisit = () => {
+    modal.confirm({
+      title: 'Delete this visit?',
+      content: 'This permanently removes the visit and all its medications, recommendations, and attachments. This cannot be undone.',
+      okText: 'Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        if (!id) return;
+        await api.visits.delete(id).catch((e) => setPageError(e.message));
+        message.success('Visit deleted');
+        navigate('/');
+      },
+    });
   };
 
   const saveMed = async (e: React.FormEvent) => {
@@ -97,12 +84,10 @@ export default function VisitDetailPage() {
       setMeds((prev) => [...prev, m]);
       setMedForm({ name: '' });
       setShowMedForm(false);
-      toast.success('Medication added');
+      message.success('Medication added');
     } catch (e: unknown) {
       setPageError(e instanceof Error ? e.message : 'Failed');
-    } finally {
-      setSavingMed(false);
-    }
+    } finally { setSavingMed(false); }
   };
 
   const deleteMed = async (medId: string) => {
@@ -110,7 +95,7 @@ export default function VisitDetailPage() {
     await api.medications.delete(id, medId).catch((e) => setPageError(e.message));
     setMeds((prev) => prev.filter((m) => m.id !== medId));
     setReminders((prev) => prev.filter((r) => r.medicationId !== medId));
-    toast.success('Medication removed');
+    message.success('Medication removed');
   };
 
   const saveRec = async (e: React.FormEvent) => {
@@ -122,19 +107,17 @@ export default function VisitDetailPage() {
       setRecs((prev) => [...prev, r]);
       setRecForm({ title: '' });
       setShowRecForm(false);
-      toast.success('Recommendation added');
+      message.success('Recommendation added');
     } catch (e: unknown) {
       setPageError(e instanceof Error ? e.message : 'Failed');
-    } finally {
-      setSavingRec(false);
-    }
+    } finally { setSavingRec(false); }
   };
 
   const deleteRec = async (recId: string) => {
     if (!id) return;
     await api.recommendations.delete(id, recId).catch((e) => setPageError(e.message));
     setRecs((prev) => prev.filter((r) => r.id !== recId));
-    toast.success('Recommendation removed');
+    message.success('Recommendation removed');
   };
 
   const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,13 +127,10 @@ export default function VisitDetailPage() {
     try {
       const a = await api.attachments.upload(id, file);
       setAttachments((prev) => [...prev, a]);
-      toast.success('File uploaded');
+      message.success('File uploaded');
     } catch (e: unknown) {
       setPageError(e instanceof Error ? e.message : 'Upload failed');
-    } finally {
-      setUploading(false);
-      e.target.value = '';
-    }
+    } finally { setUploading(false); e.target.value = ''; }
   };
 
   const openAttachment = async (attachId: string) => {
@@ -167,7 +147,7 @@ export default function VisitDetailPage() {
     if (!id) return;
     await api.attachments.delete(id, attachId).catch((e) => setPageError(e.message));
     setAttachments((prev) => prev.filter((a) => a.id !== attachId));
-    toast.success('Attachment removed');
+    message.success('Attachment removed');
   };
 
   const saveReminder = async (medId: string) => {
@@ -178,12 +158,10 @@ export default function VisitDetailPage() {
       const r = await api.reminders.create({ medicationId: medId, reminderTime: time });
       setReminders((prev) => [...prev, r]);
       setReminderTime((prev) => ({ ...prev, [medId]: '' }));
-      toast.success('Reminder set');
+      message.success('Reminder set');
     } catch (e: unknown) {
       setPageError(e instanceof Error ? e.message : 'Failed');
-    } finally {
-      setSavingReminder(null);
-    }
+    } finally { setSavingReminder(null); }
   };
 
   const toggleReminder = async (remId: string) => {
@@ -198,326 +176,259 @@ export default function VisitDetailPage() {
   const deleteReminder = async (remId: string) => {
     await api.reminders.delete(remId).catch((e) => setPageError(e.message));
     setReminders((prev) => prev.filter((r) => r.id !== remId));
-    toast.success('Reminder removed');
+    message.success('Reminder removed');
   };
 
   if (loading) {
     return (
-      <div className="flex flex-col flex-1">
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
         <PageHeader title="Visit Detail" backHref="/" />
-        <main className="w-full max-w-2xl mx-auto px-4 py-6 space-y-4">
-          <Skeleton className="h-36 w-full rounded-xl" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-48 w-full rounded-xl" />
+        <main style={{ width: '100%', maxWidth: 672, margin: '0 auto', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Skeleton active />
+          <Skeleton active />
+          <Skeleton active />
         </main>
       </div>
     );
   }
 
+  const tabItems = [
+    {
+      key: 'medications',
+      label: <Flex align="center" gap={6}><MedicineBoxOutlined /><span>Meds</span></Flex>,
+      children: (
+        <Flex vertical gap={12}>
+          <Flex justify="flex-end">
+            <Button icon={showMedForm ? <CloseOutlined /> : <PlusOutlined />} onClick={() => setShowMedForm((s) => !s)}>
+              {showMedForm ? 'Cancel' : 'Add'}
+            </Button>
+          </Flex>
+          {showMedForm && (
+            <Card>
+              <form onSubmit={saveMed}>
+                <Flex vertical gap={12}>
+                  <Input placeholder="Medication name *" required value={medForm.name}
+                    onChange={(e) => setMedForm((p) => ({ ...p, name: e.target.value }))} />
+                  <Flex gap={12}>
+                    <Input placeholder="Dosage (e.g. 10mg)" value={medForm.dosage ?? ''}
+                      onChange={(e) => setMedForm((p) => ({ ...p, dosage: e.target.value }))} />
+                    <Input placeholder="Frequency (e.g. once daily)" value={medForm.frequency ?? ''}
+                      onChange={(e) => setMedForm((p) => ({ ...p, frequency: e.target.value }))} />
+                  </Flex>
+                  <Button type="primary" htmlType="submit" loading={savingMed}>Save Medication</Button>
+                </Flex>
+              </form>
+            </Card>
+          )}
+          {meds.length === 0 && !showMedForm && (
+            <Typography.Text type="secondary" style={{ textAlign: 'center', display: 'block', padding: '24px 0' }}>
+              No medications recorded.
+            </Typography.Text>
+          )}
+          {meds.map((m) => {
+            const medReminders = reminders.filter((r) => r.medicationId === m.id);
+            return (
+              <Card key={m.id}>
+                <Flex justify="space-between" align="flex-start" gap={8}>
+                  <Flex vertical gap={4}>
+                    <Typography.Text strong style={{ fontSize: 14 }}>{m.name}</Typography.Text>
+                    <Flex gap={4} wrap="wrap">
+                      {m.dosage && <Tag>{m.dosage}</Tag>}
+                      {m.frequency && <Tag>{m.frequency}</Tag>}
+                    </Flex>
+                  </Flex>
+                  <Button type="text" danger icon={<CloseOutlined />} onClick={() => deleteMed(m.id)} />
+                </Flex>
+                {medReminders.length > 0 && (
+                  <>
+                    <Divider style={{ margin: '12px 0' }} />
+                    <Flex vertical gap={8}>
+                      {medReminders.map((r) => (
+                        <Flex key={r.id} align="center" gap={8}>
+                          <BellOutlined style={{ color: '#94a3b8' }} />
+                          <Typography.Text type="secondary" style={{ flex: 1 }}>{r.reminderTime}</Typography.Text>
+                          <Switch size="small" checked={r.enabled} onChange={() => toggleReminder(r.id)} />
+                          <Button type="text" danger size="small" icon={<CloseOutlined />} onClick={() => deleteReminder(r.id)} />
+                        </Flex>
+                      ))}
+                    </Flex>
+                  </>
+                )}
+                <Divider style={{ margin: '12px 0' }} />
+                <Flex align="center" gap={8}>
+                  <Input type="time" style={{ width: 128 }}
+                    value={reminderTime[m.id] ?? ''}
+                    onChange={(e) => setReminderTime((p) => ({ ...p, [m.id]: e.target.value }))} />
+                  <Button disabled={savingReminder === m.id || !reminderTime[m.id]} onClick={() => saveReminder(m.id)}>
+                    {savingReminder === m.id ? '…' : '+ Reminder'}
+                  </Button>
+                </Flex>
+              </Card>
+            );
+          })}
+        </Flex>
+      ),
+    },
+    {
+      key: 'recommendations',
+      label: <Flex align="center" gap={6}><FileTextOutlined /><span>Recs</span></Flex>,
+      children: (
+        <Flex vertical gap={12}>
+          <Flex justify="flex-end">
+            <Button icon={showRecForm ? <CloseOutlined /> : <PlusOutlined />} onClick={() => setShowRecForm((s) => !s)}>
+              {showRecForm ? 'Cancel' : 'Add'}
+            </Button>
+          </Flex>
+          {showRecForm && (
+            <Card>
+              <form onSubmit={saveRec}>
+                <Flex vertical gap={12}>
+                  <Input placeholder="Title *" required value={recForm.title}
+                    onChange={(e) => setRecForm((p) => ({ ...p, title: e.target.value }))} />
+                  <Input.TextArea placeholder="Description (optional)" rows={3}
+                    value={recForm.description ?? ''}
+                    onChange={(e) => setRecForm((p) => ({ ...p, description: e.target.value }))} />
+                  <Input type="date" value={recForm.followUpDate ?? ''}
+                    onChange={(e) => setRecForm((p) => ({ ...p, followUpDate: e.target.value }))} />
+                  <Button type="primary" htmlType="submit" loading={savingRec}>Save Recommendation</Button>
+                </Flex>
+              </form>
+            </Card>
+          )}
+          {recs.length === 0 && !showRecForm && (
+            <Typography.Text type="secondary" style={{ textAlign: 'center', display: 'block', padding: '24px 0' }}>
+              No recommendations recorded.
+            </Typography.Text>
+          )}
+          {recs.map((r) => (
+            <Card key={r.id}>
+              <Flex justify="space-between" align="flex-start" gap={8}>
+                <Flex vertical gap={4}>
+                  <Typography.Text strong style={{ fontSize: 14 }}>{r.title}</Typography.Text>
+                  {r.followUpDate && <Tag>Follow up: {r.followUpDate}</Tag>}
+                  {r.description && <Typography.Text type="secondary">{r.description}</Typography.Text>}
+                </Flex>
+                <Button type="text" danger icon={<CloseOutlined />} onClick={() => deleteRec(r.id)} />
+              </Flex>
+            </Card>
+          ))}
+        </Flex>
+      ),
+    },
+    {
+      key: 'attachments',
+      label: <Flex align="center" gap={6}><PaperClipOutlined /><span>Files</span></Flex>,
+      children: (
+        <Flex vertical gap={12}>
+          <Flex justify="flex-end">
+            <Button icon={<PaperClipOutlined />} loading={uploading} onClick={() => fileRef.current?.click()}>
+              {uploading ? 'Uploading…' : 'Upload'}
+            </Button>
+            <input ref={fileRef} type="file" style={{ display: 'none' }} onChange={uploadFile} />
+          </Flex>
+          {attachments.length === 0 && (
+            <Typography.Text type="secondary" style={{ textAlign: 'center', display: 'block', padding: '24px 0' }}>
+              No attachments.
+            </Typography.Text>
+          )}
+          {attachments.map((a) => (
+            <Card key={a.id}>
+              <Flex align="center" gap={12}>
+                <FileOutlined style={{ fontSize: 20, color: '#94a3b8', flexShrink: 0 }} />
+                <Typography.Link style={{ flex: 1 }} ellipsis onClick={() => openAttachment(a.id)}>
+                  {a.filename}
+                </Typography.Link>
+                <Typography.Text type="secondary" style={{ fontSize: 12, flexShrink: 0 }}>
+                  {formatBytes(a.sizeBytes)}
+                </Typography.Text>
+                <Button type="text" danger icon={<CloseOutlined />} onClick={() => deleteAttachment(a.id)} />
+              </Flex>
+            </Card>
+          ))}
+        </Flex>
+      ),
+    },
+    {
+      key: 'reminders',
+      label: <Flex align="center" gap={6}><BellOutlined /><span>Alerts</span></Flex>,
+      children: (
+        <Flex vertical gap={12}>
+          {reminders.length === 0 ? (
+            <Typography.Text type="secondary" style={{ textAlign: 'center', display: 'block', padding: '24px 0' }}>
+              No reminders. Add them from the Medications tab.
+            </Typography.Text>
+          ) : (
+            reminders.map((r) => (
+              <Card key={r.id}>
+                <Flex align="center" gap={12}>
+                  <BellOutlined style={{ color: '#94a3b8', flexShrink: 0 }} />
+                  <Flex vertical style={{ flex: 1, minWidth: 0 }}>
+                    <Typography.Text strong ellipsis>{r.medicationName}</Typography.Text>
+                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>{r.reminderTime}</Typography.Text>
+                  </Flex>
+                  <Switch size="small" checked={r.enabled} onChange={() => toggleReminder(r.id)} />
+                  <Button type="text" danger icon={<CloseOutlined />} onClick={() => deleteReminder(r.id)} />
+                </Flex>
+              </Card>
+            ))
+          )}
+        </Flex>
+      ),
+    },
+  ];
+
   return (
-    <div className="flex flex-col flex-1">
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <PageHeader
         title="Visit Detail"
         backHref="/"
         actions={
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(`/visits/${id}/edit`)}
-            >
-              Edit
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm">
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Delete
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete this visit?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This permanently removes the visit and all its medications,
-                    recommendations, and attachments. This cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    onClick={handleDeleteVisit}
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </>
+          <Flex gap={8}>
+            <Button onClick={() => navigate(`/visits/${id}/edit`)}>Edit</Button>
+            <Button danger icon={<DeleteOutlined />} onClick={handleDeleteVisit}>Delete</Button>
+          </Flex>
         }
       />
-
-      <main className="w-full max-w-2xl mx-auto px-4 py-6 space-y-5">
-        {pageError && (
-          <Alert variant="destructive">
-            <AlertDescription>{pageError}</AlertDescription>
-          </Alert>
-        )}
+      <main style={{ width: '100%', maxWidth: 672, margin: '0 auto', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {pageError && <Alert type="error" message={pageError} showIcon />}
 
         {visit && (
           <Card>
-            <CardContent className="p-5 space-y-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm text-muted-foreground">{visit.visitDate}</span>
-                {visit.specialty && <Badge variant="outline">{visit.specialty}</Badge>}
-              </div>
-              <h2 className="text-xl font-bold text-foreground">{visit.doctorName}</h2>
+            <Flex vertical gap={8}>
+              <Flex align="center" gap={8} wrap="wrap">
+                <Typography.Text type="secondary" style={{ fontSize: 14 }}>{visit.visitDate}</Typography.Text>
+                {visit.specialty && <Tag bordered={false}>{visit.specialty}</Tag>}
+              </Flex>
+              <Typography.Title level={4} style={{ margin: 0 }}>{visit.doctorName}</Typography.Title>
               {visit.clinic && (
-                <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4 shrink-0" />
-                  {visit.clinic}
-                </p>
+                <Flex align="center" gap={6}>
+                  <EnvironmentOutlined style={{ color: '#94a3b8' }} />
+                  <Typography.Text type="secondary">{visit.clinic}</Typography.Text>
+                </Flex>
               )}
-              {(visit.chiefComplaint || visit.diagnosis) && <Separator />}
+              {(visit.chiefComplaint || visit.diagnosis) && <Divider style={{ margin: '8px 0' }} />}
               {visit.chiefComplaint && (
-                <p className="text-sm text-foreground">
-                  <span className="font-medium text-muted-foreground">Complaint: </span>
+                <Typography.Text>
+                  <Typography.Text type="secondary">Complaint: </Typography.Text>
                   {visit.chiefComplaint}
-                </p>
+                </Typography.Text>
               )}
               {visit.diagnosis && (
-                <p className="text-sm text-foreground">
-                  <span className="font-medium text-muted-foreground">Diagnosis: </span>
+                <Typography.Text>
+                  <Typography.Text type="secondary">Diagnosis: </Typography.Text>
                   {visit.diagnosis}
-                </p>
+                </Typography.Text>
               )}
               {visit.notes && (
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{visit.notes}</p>
+                <Typography.Text type="secondary" style={{ whiteSpace: 'pre-wrap' }}>
+                  {visit.notes}
+                </Typography.Text>
               )}
-            </CardContent>
+            </Flex>
           </Card>
         )}
 
-        <Tabs defaultValue="medications">
-          <TabsList className="w-full grid grid-cols-4">
-            <TabsTrigger value="medications" className="gap-1.5">
-              <Pill className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Medications</span>
-              <span className="sm:hidden">Meds</span>
-            </TabsTrigger>
-            <TabsTrigger value="recommendations" className="gap-1.5">
-              <ClipboardList className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Recommendations</span>
-              <span className="sm:hidden">Recs</span>
-            </TabsTrigger>
-            <TabsTrigger value="attachments" className="gap-1.5">
-              <Paperclip className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Attachments</span>
-              <span className="sm:hidden">Files</span>
-            </TabsTrigger>
-            <TabsTrigger value="reminders" className="gap-1.5">
-              <Bell className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Reminders</span>
-              <span className="sm:hidden">Alerts</span>
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Medications */}
-          <TabsContent value="medications" className="mt-3 space-y-3">
-            <div className="flex justify-end">
-              <Button variant="outline" size="sm" onClick={() => setShowMedForm((s) => !s)}>
-                {showMedForm ? <X className="h-4 w-4 mr-1" /> : <Plus className="h-4 w-4 mr-1" />}
-                {showMedForm ? 'Cancel' : 'Add'}
-              </Button>
-            </div>
-            {showMedForm && (
-              <Card>
-                <CardContent className="p-4">
-                  <form onSubmit={saveMed} className="space-y-3">
-                    <Input placeholder="Medication name *" required value={medForm.name}
-                      onChange={(e) => setMedForm((p) => ({ ...p, name: e.target.value }))} />
-                    <div className="grid grid-cols-2 gap-3">
-                      <Input placeholder="Dosage (e.g. 10mg)" value={medForm.dosage ?? ''}
-                        onChange={(e) => setMedForm((p) => ({ ...p, dosage: e.target.value }))} />
-                      <Input placeholder="Frequency (e.g. once daily)" value={medForm.frequency ?? ''}
-                        onChange={(e) => setMedForm((p) => ({ ...p, frequency: e.target.value }))} />
-                    </div>
-                    <Button type="submit" size="sm" disabled={savingMed}>
-                      {savingMed ? 'Saving…' : 'Save Medication'}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            )}
-            {meds.length === 0 && !showMedForm && (
-              <p className="text-sm text-muted-foreground text-center py-6">No medications recorded.</p>
-            )}
-            {meds.map((m) => {
-              const medReminders = reminders.filter((r) => r.medicationId === m.id);
-              return (
-                <Card key={m.id}>
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-1">
-                        <p className="font-semibold text-sm text-foreground">{m.name}</p>
-                        <div className="flex gap-1.5 flex-wrap">
-                          {m.dosage && <Badge variant="secondary" className="text-xs">{m.dosage}</Badge>}
-                          {m.frequency && <Badge variant="secondary" className="text-xs">{m.frequency}</Badge>}
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="icon"
-                        className="text-destructive hover:text-destructive shrink-0"
-                        onClick={() => deleteMed(m.id)}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    {medReminders.length > 0 && (
-                      <div className="space-y-2 pt-1 border-t border-border">
-                        {medReminders.map((r) => (
-                          <div key={r.id} className="flex items-center gap-2 text-sm">
-                            <Bell className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                            <span className="text-muted-foreground flex-1">{r.reminderTime}</span>
-                            <Switch checked={r.enabled} onCheckedChange={() => toggleReminder(r.id)} />
-                            <Button variant="ghost" size="icon"
-                              className="h-7 w-7 text-destructive hover:text-destructive"
-                              onClick={() => deleteReminder(r.id)}>
-                              <X className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2 pt-1 border-t border-border">
-                      <Input type="time" className="h-8 w-32"
-                        value={reminderTime[m.id] ?? ''}
-                        onChange={(e) => setReminderTime((p) => ({ ...p, [m.id]: e.target.value }))} />
-                      <Button variant="outline" size="sm"
-                        disabled={savingReminder === m.id || !reminderTime[m.id]}
-                        onClick={() => saveReminder(m.id)}>
-                        {savingReminder === m.id ? '…' : '+ Reminder'}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </TabsContent>
-
-          {/* Recommendations */}
-          <TabsContent value="recommendations" className="mt-3 space-y-3">
-            <div className="flex justify-end">
-              <Button variant="outline" size="sm" onClick={() => setShowRecForm((s) => !s)}>
-                {showRecForm ? <X className="h-4 w-4 mr-1" /> : <Plus className="h-4 w-4 mr-1" />}
-                {showRecForm ? 'Cancel' : 'Add'}
-              </Button>
-            </div>
-            {showRecForm && (
-              <Card>
-                <CardContent className="p-4">
-                  <form onSubmit={saveRec} className="space-y-3">
-                    <Input placeholder="Title *" required value={recForm.title}
-                      onChange={(e) => setRecForm((p) => ({ ...p, title: e.target.value }))} />
-                    <Textarea placeholder="Description (optional)" rows={3}
-                      value={recForm.description ?? ''}
-                      onChange={(e) => setRecForm((p) => ({ ...p, description: e.target.value }))} />
-                    <Input type="date" value={recForm.followUpDate ?? ''}
-                      onChange={(e) => setRecForm((p) => ({ ...p, followUpDate: e.target.value }))} />
-                    <Button type="submit" size="sm" disabled={savingRec}>
-                      {savingRec ? 'Saving…' : 'Save Recommendation'}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            )}
-            {recs.length === 0 && !showRecForm && (
-              <p className="text-sm text-muted-foreground text-center py-6">No recommendations recorded.</p>
-            )}
-            {recs.map((r) => (
-              <Card key={r.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-1">
-                      <p className="font-semibold text-sm text-foreground">{r.title}</p>
-                      {r.followUpDate && (
-                        <Badge variant="outline" className="text-xs">Follow up: {r.followUpDate}</Badge>
-                      )}
-                      {r.description && <p className="text-sm text-muted-foreground">{r.description}</p>}
-                    </div>
-                    <Button variant="ghost" size="icon"
-                      className="text-destructive hover:text-destructive shrink-0"
-                      onClick={() => deleteRec(r.id)}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-
-          {/* Attachments */}
-          <TabsContent value="attachments" className="mt-3 space-y-3">
-            <div className="flex justify-end">
-              <Button variant="outline" size="sm" disabled={uploading}
-                onClick={() => fileRef.current?.click()}>
-                <Paperclip className="h-4 w-4 mr-1" />
-                {uploading ? 'Uploading…' : 'Upload'}
-              </Button>
-              <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} />
-            </div>
-            {attachments.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-6">No attachments.</p>
-            )}
-            {attachments.map((a) => (
-              <Card key={a.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
-                    <button className="flex-1 text-left text-sm font-medium text-primary hover:underline truncate"
-                      onClick={() => openAttachment(a.id)}>
-                      {a.filename}
-                    </button>
-                    <span className="text-xs text-muted-foreground shrink-0">{formatBytes(a.sizeBytes)}</span>
-                    <Button variant="ghost" size="icon"
-                      className="text-destructive hover:text-destructive shrink-0"
-                      onClick={() => deleteAttachment(a.id)}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-
-          {/* Reminders */}
-          <TabsContent value="reminders" className="mt-3 space-y-3">
-            {reminders.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">
-                No reminders. Add them from the Medications tab.
-              </p>
-            ) : (
-              reminders.map((r) => (
-                <Card key={r.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <Bell className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{r.medicationName}</p>
-                        <p className="text-xs text-muted-foreground">{r.reminderTime}</p>
-                      </div>
-                      <Switch checked={r.enabled} onCheckedChange={() => toggleReminder(r.id)} />
-                      <Button variant="ghost" size="icon"
-                        className="text-destructive hover:text-destructive shrink-0"
-                        onClick={() => deleteReminder(r.id)}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </TabsContent>
-        </Tabs>
+        <Tabs defaultActiveKey="medications" items={tabItems} />
       </main>
     </div>
   );
