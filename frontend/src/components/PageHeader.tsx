@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, Flex, Typography } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 
 interface PageHeaderProps {
   title: string;
@@ -13,23 +13,38 @@ export default function PageHeader({ title, backHref, actions }: PageHeaderProps
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between h-16 px-4 md:px-6 bg-card border-b border-border shrink-0">
-      <div className="flex items-center gap-1 min-w-0">
+    <Flex
+      align="center"
+      justify="space-between"
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 20,
+        height: 64,
+        padding: '0 24px',
+        background: '#ffffff',
+        borderBottom: '1px solid #e2e8f0',
+        flexShrink: 0,
+      }}
+    >
+      <Flex align="center" gap={4}>
         {backHref && (
           <Button
-            variant="ghost"
-            size="icon"
-            className="-ml-2 shrink-0"
+            type="text"
+            icon={<ArrowLeftOutlined />}
             onClick={() => navigate(backHref)}
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
+            style={{ marginLeft: -8 }}
+          />
         )}
-        <h1 className="font-semibold text-base md:text-lg text-foreground truncate">{title}</h1>
-      </div>
+        <Typography.Title level={5} style={{ margin: 0 }}>
+          {title}
+        </Typography.Title>
+      </Flex>
       {actions && (
-        <div className="flex items-center gap-2 ml-4 shrink-0">{actions}</div>
+        <Flex align="center" gap={8}>
+          {actions}
+        </Flex>
       )}
-    </header>
+    </Flex>
   );
 }
