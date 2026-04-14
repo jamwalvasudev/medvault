@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'sonner';
+import { App, ConfigProvider, Spin } from 'antd';
 import { AuthProvider, useAuth } from './AuthContext';
 import AppShell from './components/AppShell';
 import LoginPage from './pages/LoginPage';
@@ -13,8 +13,8 @@ function AppRoutes() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
-        Loading…
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Spin size="large" />
       </div>
     );
   }
@@ -41,13 +41,16 @@ function AppRoutes() {
   );
 }
 
-export default function App() {
+export default function Root() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-        <Toaster position="bottom-right" richColors />
-      </AuthProvider>
-    </BrowserRouter>
+    <ConfigProvider theme={{ token: { colorPrimary: '#4f46e5', borderRadius: 8 } }}>
+      <App>
+        <BrowserRouter>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </BrowserRouter>
+      </App>
+    </ConfigProvider>
   );
 }
