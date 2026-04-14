@@ -1,19 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { toast } from 'sonner';
+import { Alert, App, Button, Card, Flex, Input, Select, Typography } from 'antd';
 import { api, type VisitRequest } from '@/api';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import PageHeader from '@/components/PageHeader';
 
 const empty: VisitRequest = {
@@ -29,6 +17,7 @@ const empty: VisitRequest = {
 export default function VisitFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { message } = App.useApp();
   const isEdit = Boolean(id);
 
   const [form, setForm] = useState<VisitRequest>(empty);
@@ -88,11 +77,11 @@ export default function VisitFormPage() {
     try {
       if (isEdit && id) {
         await api.visits.update(id, submitData);
-        toast.success('Visit updated');
+        message.success('Visit updated');
         navigate(`/visits/${id}`);
       } else {
         const v = await api.visits.create(submitData);
-        toast.success('Visit saved');
+        message.success('Visit saved');
         navigate(`/visits/${v.id}`);
       }
     } catch (e: unknown) {
@@ -102,88 +91,92 @@ export default function VisitFormPage() {
     }
   };
 
+  const specialtyOptions = [
+    ...specialties.map((s) => ({ value: s.name, label: s.name })),
+    { value: '__other__', label: 'Other…' },
+  ];
+
   return (
-    <div className="flex flex-col flex-1">
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <PageHeader
         title={isEdit ? 'Edit Visit' : 'New Visit'}
         backHref={isEdit ? `/visits/${id}` : '/'}
       />
-      <main className="w-full max-w-2xl mx-auto px-4 py-6">
+      <main style={{ width: '100%', maxWidth: 672, margin: '0 auto', padding: '24px 16px' }}>
         <Card>
-          <CardContent className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">Date *</label>
+          <form onSubmit={handleSubmit}>
+            <Flex vertical gap={20}>
+              {error && <Alert type="error" message={error} showIcon />}
+
+              <Flex gap={16} wrap="wrap">
+                <Flex vertical gap={6} style={{ flex: 1, minWidth: 200 }}>
+                  <Typography.Text strong>Date *</Typography.Text>
                   <Input type="date" required value={form.visitDate} onChange={field('visitDate')} />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">Doctor *</label>
+                </Flex>
+                <Flex vertical gap={6} style={{ flex: 1, minWidth: 200 }}>
+                  <Typography.Text strong>Doctor *</Typography.Text>
                   <Input placeholder="Dr. Smith" required value={form.doctorName} onChange={field('doctorName')} />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">Specialty</label>
+                </Flex>
+              </Flex>
+
+              <Flex gap={16} wrap="wrap">
+                <Flex vertical gap={6} style={{ flex: 1, minWidth: 200 }}>
+                  <Typography.Text strong>Specialty</Typography.Text>
                   {specialtyFailed ? (
                     <Input placeholder="GP, Cardiology…" value={form.specialty ?? ''} onChange={field('specialty')} />
                   ) : (
-                    <>
-                      <Select value={selectValue} onValueChange={(val) => {
-                        setSelectValue(val);
-                        if (val !== '__other__') setCustomSpecialty('');
-                      }}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="— select specialty —" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {specialties.map((s) => (
-                            <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
-                          ))}
-                          <SelectItem value="__other__">Other…</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <Flex vertical gap={8}>
+                      <Select
+                        placeholder="— select specialty —"
+                        value={selectValue || undefined}
+                        onChange={(val) => {
+                          setSelectValue(val);
+                          if (val !== '__other__') setCustomSpecialty('');
+                        }}
+                        options={specialtyOptions}
+                        style={{ width: '100%' }}
+                      />
                       {selectValue === '__other__' && (
-                        <Input placeholder="Enter specialty" className="mt-2"
+                        <Input
+                          placeholder="Enter specialty"
                           value={customSpecialty}
-                          onChange={(e) => setCustomSpecialty(e.target.value)} />
+                          onChange={(e) => setCustomSpecialty(e.target.value)}
+                        />
                       )}
-                    </>
+                    </Flex>
                   )}
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">Clinic / Hospital</label>
+                </Flex>
+                <Flex vertical gap={6} style={{ flex: 1, minWidth: 200 }}>
+                  <Typography.Text strong>Clinic / Hospital</Typography.Text>
                   <Input placeholder="City General Hospital" value={form.clinic ?? ''} onChange={field('clinic')} />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">Chief Complaint</label>
+                </Flex>
+              </Flex>
+
+              <Flex vertical gap={6}>
+                <Typography.Text strong>Chief Complaint</Typography.Text>
                 <Input placeholder="Why you visited" value={form.chiefComplaint ?? ''} onChange={field('chiefComplaint')} />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">Diagnosis</label>
+              </Flex>
+
+              <Flex vertical gap={6}>
+                <Typography.Text strong>Diagnosis</Typography.Text>
                 <Input placeholder="Diagnosis / findings" value={form.diagnosis ?? ''} onChange={field('diagnosis')} />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">Notes</label>
-                <Textarea placeholder="Additional notes…" rows={4} value={form.notes ?? ''} onChange={field('notes')} />
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <Button type="button" variant="ghost"
-                  onClick={() => navigate(isEdit ? `/visits/${id}` : '/')}>
+              </Flex>
+
+              <Flex vertical gap={6}>
+                <Typography.Text strong>Notes</Typography.Text>
+                <Input.TextArea placeholder="Additional notes…" rows={4} value={form.notes ?? ''} onChange={field('notes')} />
+              </Flex>
+
+              <Flex justify="flex-end" gap={12}>
+                <Button onClick={() => navigate(isEdit ? `/visits/${id}` : '/')}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Saving…' : 'Save Visit'}
+                <Button type="primary" htmlType="submit" loading={submitting}>
+                  Save Visit
                 </Button>
-              </div>
-            </form>
-          </CardContent>
+              </Flex>
+            </Flex>
+          </form>
         </Card>
       </main>
     </div>
