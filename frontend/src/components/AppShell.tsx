@@ -1,92 +1,135 @@
 import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Avatar, Flex, Grid, Layout, Menu, Typography } from 'antd';
+import { HomeOutlined, SearchOutlined } from '@ant-design/icons';
 import { useAuth } from '@/AuthContext';
 
+const { Sider, Content } = Layout;
+const { useBreakpoint } = Grid;
+
 const navItems = [
-  { href: '/', icon: Home, label: 'Home' },
-  { href: '/search', icon: Search, label: 'Search' },
+  { key: '/', icon: <HomeOutlined />, label: <Link to="/">Home</Link> },
+  { key: '/search', icon: <SearchOutlined />, label: <Link to="/search">Search</Link> },
+];
+
+const mobileNavItems = [
+  { href: '/', icon: <HomeOutlined />, label: 'Home' },
+  { href: '/search', icon: <SearchOutlined />, label: 'Search' },
 ];
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const { user } = useAuth();
+  const screens = useBreakpoint();
 
-  const isActive = (href: string) =>
-    href === '/' ? pathname === '/' : pathname.startsWith(href);
+  const selectedKey =
+    pathname === '/'
+      ? '/'
+      : navItems.find((i) => i.key !== '/' && pathname.startsWith(i.key))?.key ?? '/';
+
+  const showSidebar = !!screens.md;
+  const collapsed = !screens.lg;
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* ── Sidebar (md and above) ── */}
-      <aside className="hidden md:flex flex-col fixed inset-y-0 left-0 z-30 w-16 lg:w-48 bg-sidebar">
-        {/* Logo */}
-        <div className="flex items-center h-16 shrink-0 px-3 lg:px-5 border-b border-sidebar-accent">
-          <span className="text-sidebar-foreground font-bold text-lg leading-none">M</span>
-          <span className="hidden lg:inline text-sidebar-foreground font-bold text-base ml-0.5">
-            edHistory
-          </span>
-        </div>
-
-        {/* Nav */}
-        <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-          {navItems.map(({ href, icon: Icon, label }) => (
-            <Link
-              key={href}
-              to={href}
-              className={cn(
-                'flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors',
-                isActive(href)
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                  : 'text-sidebar-muted hover:bg-sidebar-accent/60 hover:text-sidebar-foreground',
-              )}
-            >
-              <Icon className="h-5 w-5 shrink-0" />
-              <span className="hidden lg:inline text-sm font-medium">{label}</span>
-            </Link>
-          ))}
-        </nav>
-
-        {/* User */}
-        <div className="p-3 border-t border-sidebar-accent shrink-0">
-          <div className="flex items-center gap-2 min-w-0">
-            {user?.picture ? (
-              <img
-                src={user.picture}
-                alt=""
-                className="h-8 w-8 rounded-full shrink-0 object-cover"
-              />
-            ) : (
-              <div className="h-8 w-8 rounded-full bg-sidebar-accent shrink-0" />
-            )}
-            <span className="hidden lg:block text-sidebar-muted text-xs truncate">
-              {user?.name}
-            </span>
-          </div>
-        </div>
-      </aside>
-
-      {/* ── Content area ── */}
-      <div className="flex-1 flex flex-col md:ml-16 lg:ml-48 pb-16 md:pb-0 min-h-screen">
-        {children}
-      </div>
-
-      {/* ── Bottom tab bar (mobile only) ── */}
-      <nav className="md:hidden fixed inset-x-0 bottom-0 z-30 flex h-16 items-center justify-around border-t border-sidebar-accent bg-sidebar">
-        {navItems.map(({ href, icon: Icon, label }) => (
-          <Link
-            key={href}
-            to={href}
-            className={cn(
-              'flex flex-col items-center gap-1 px-6 py-2 transition-colors',
-              isActive(href) ? 'text-primary' : 'text-sidebar-muted',
-            )}
+    <Layout style={{ minHeight: '100vh' }}>
+      {showSidebar && (
+        <Sider
+          theme="dark"
+          collapsed={collapsed}
+          collapsedWidth={64}
+          width={200}
+          style={{ position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 30 }}
+        >
+          {/* Logo */}
+          <Flex
+            align="center"
+            style={{
+              height: 64,
+              padding: '0 20px',
+              borderBottom: '1px solid #1e293b',
+              flexShrink: 0,
+            }}
           >
-            <Icon className="h-5 w-5" />
-            <span className="text-xs font-medium">{label}</span>
-          </Link>
-        ))}
-      </nav>
-    </div>
+            <Typography.Text style={{ color: '#f8fafc', fontWeight: 700, fontSize: 18, whiteSpace: 'nowrap' }}>
+              {collapsed ? 'M' : 'MedHistory'}
+            </Typography.Text>
+          </Flex>
+
+          {/* Nav */}
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[selectedKey]}
+            items={navItems}
+            style={{ borderRight: 0, flex: 1 }}
+          />
+
+          {/* User */}
+          <Flex
+            align="center"
+            gap={8}
+            style={{ padding: 12, borderTop: '1px solid #1e293b', flexShrink: 0 }}
+          >
+            <Avatar src={user?.picture} size={32} style={{ flexShrink: 0 }}>
+              {!user?.picture && user?.name?.[0]}
+            </Avatar>
+            {!collapsed && (
+              <Typography.Text
+                style={{ color: '#64748b', fontSize: 12 }}
+                ellipsis={{ tooltip: user?.name }}
+              >
+                {user?.name}
+              </Typography.Text>
+            )}
+          </Flex>
+        </Sider>
+      )}
+
+      <Layout style={{ marginLeft: showSidebar ? (collapsed ? 64 : 200) : 0, paddingBottom: showSidebar ? 0 : 64 }}>
+        <Content>{children}</Content>
+      </Layout>
+
+      {/* Mobile bottom nav */}
+      {!showSidebar && (
+        <nav
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 64,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+            background: '#0f172a',
+            borderTop: '1px solid #1e293b',
+            zIndex: 30,
+          }}
+        >
+          {mobileNavItems.map(({ href, icon, label }) => {
+            const active = href === '/' ? pathname === '/' : pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                to={href}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 4,
+                  color: active ? '#4f46e5' : '#64748b',
+                  fontSize: 12,
+                  padding: '8px 24px',
+                  textDecoration: 'none',
+                }}
+              >
+                <span style={{ fontSize: 20 }}>{icon}</span>
+                <span>{label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      )}
+    </Layout>
   );
 }
