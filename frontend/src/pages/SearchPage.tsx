@@ -1,13 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin, ChevronRight } from 'lucide-react';
+import { Alert, Button, Card, Flex, Input, Skeleton, Tag, Typography } from 'antd';
+import { EnvironmentOutlined, RightOutlined, SearchOutlined } from '@ant-design/icons';
 import { api, type Visit } from '@/api';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import PageHeader from '@/components/PageHeader';
 
 export default function SearchPage() {
@@ -35,52 +30,87 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="flex flex-col flex-1">
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <PageHeader title="Search" backHref="/" />
-      <main className="w-full max-w-2xl mx-auto px-4 py-6 space-y-4">
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <Input className="pl-9" placeholder="Search visits, doctors, diagnoses…"
-              value={query} onChange={(e) => setQuery(e.target.value)} autoFocus />
-          </div>
-          <Button type="submit" disabled={loading}>{loading ? '…' : 'Search'}</Button>
+      <main
+        style={{
+          width: '100%',
+          maxWidth: 672,
+          margin: '0 auto',
+          padding: '24px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+        }}
+      >
+        <form onSubmit={handleSearch}>
+          <Flex gap={8}>
+            <Input
+              prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+              placeholder="Search visits, doctors, diagnoses…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              autoFocus
+              style={{ flex: 1 }}
+            />
+            <Button type="primary" htmlType="submit" loading={loading}>
+              Search
+            </Button>
+          </Flex>
         </form>
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+
+        {error && <Alert type="error" message={error} showIcon />}
+
         {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
-          </div>
+          <Flex vertical gap={12}>
+            {[1, 2, 3].map((i) => <Skeleton key={i} active />)}
+          </Flex>
         ) : searched && results.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">No results for "{query}"</p>
+          <Typography.Text
+            type="secondary"
+            style={{ textAlign: 'center', display: 'block', padding: '32px 0' }}
+          >
+            No results for "{query}"
+          </Typography.Text>
         ) : (
-          <div className="space-y-2">
+          <Flex vertical gap={8}>
             {results.map((v) => (
-              <Card key={v.id} className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => navigate(`/visits/${v.id}`)}>
-                <CardContent className="flex items-start justify-between gap-4 p-4">
-                  <div className="space-y-1 min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs text-muted-foreground">{v.visitDate}</span>
-                      {v.specialty && <Badge variant="outline" className="text-xs">{v.specialty}</Badge>}
-                    </div>
-                    <p className="font-semibold text-sm text-foreground">{v.doctorName}</p>
+              <Card
+                key={v.id}
+                hoverable
+                onClick={() => navigate(`/visits/${v.id}`)}
+                styles={{ body: { padding: 16 } }}
+              >
+                <Flex justify="space-between" align="flex-start" gap={16}>
+                  <Flex vertical gap={4} style={{ minWidth: 0, flex: 1 }}>
+                    <Flex align="center" gap={8} wrap="wrap">
+                      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                        {v.visitDate}
+                      </Typography.Text>
+                      {v.specialty && <Tag bordered={false}>{v.specialty}</Tag>}
+                    </Flex>
+                    <Typography.Text strong style={{ fontSize: 14 }}>
+                      {v.doctorName}
+                    </Typography.Text>
                     {v.clinic && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <MapPin className="h-3 w-3 shrink-0" />{v.clinic}
-                      </p>
+                      <Flex align="center" gap={4}>
+                        <EnvironmentOutlined style={{ fontSize: 12, color: '#94a3b8' }} />
+                        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                          {v.clinic}
+                        </Typography.Text>
+                      </Flex>
                     )}
-                    {v.diagnosis && <p className="text-xs text-muted-foreground line-clamp-1">{v.diagnosis}</p>}
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                </CardContent>
+                    {v.diagnosis && (
+                      <Typography.Text type="secondary" style={{ fontSize: 12 }} ellipsis>
+                        {v.diagnosis}
+                      </Typography.Text>
+                    )}
+                  </Flex>
+                  <RightOutlined style={{ color: '#94a3b8', flexShrink: 0, marginTop: 2 }} />
+                </Flex>
               </Card>
             ))}
-          </div>
+          </Flex>
         )}
       </main>
     </div>
