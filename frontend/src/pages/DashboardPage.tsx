@@ -1,12 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, MapPin, ChevronRight } from 'lucide-react';
+import { Alert, Button, Card, Flex, Skeleton, Tag, Typography } from 'antd';
+import { EnvironmentOutlined, PlusOutlined, RightOutlined } from '@ant-design/icons';
 import { api, type Visit } from '@/api';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import PageHeader from '@/components/PageHeader';
 
 export default function DashboardPage() {
@@ -30,77 +26,94 @@ export default function DashboardPage() {
   const years = Object.keys(byYear).sort((a, b) => Number(b) - Number(a));
 
   return (
-    <div className="flex flex-col flex-1">
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <PageHeader
         title="Your Visits"
         actions={
-          <Button size="sm" onClick={() => navigate('/visits/new')}>
-            <Plus className="h-4 w-4 mr-1" />
+          <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => navigate('/visits/new')}>
             Add Visit
           </Button>
         }
       />
-
-      <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+      <main
+        style={{
+          flex: 1,
+          width: '100%',
+          maxWidth: 672,
+          margin: '0 auto',
+          padding: '24px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 24,
+        }}
+      >
+        {error && <Alert type="error" message={error} showIcon />}
 
         {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-24 w-full rounded-xl" />
-            ))}
-          </div>
+          <Flex vertical gap={12}>
+            {[1, 2, 3].map((i) => <Skeleton key={i} active />)}
+          </Flex>
         ) : visits.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
-            <p className="text-muted-foreground">No visits yet.</p>
-            <Button onClick={() => navigate('/visits/new')}>
-              <Plus className="h-4 w-4 mr-1" />
+          <Flex vertical align="center" justify="center" style={{ paddingTop: 80, paddingBottom: 80, gap: 16 }}>
+            <Typography.Text type="secondary">No visits yet.</Typography.Text>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/visits/new')}>
               Add your first visit
             </Button>
-          </div>
+          </Flex>
         ) : (
           years.map((year) => (
             <section key={year}>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+              <Typography.Text
+                type="secondary"
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  display: 'block',
+                  marginBottom: 12,
+                }}
+              >
                 {year}
-              </p>
-              <div className="space-y-2">
+              </Typography.Text>
+              <Flex vertical gap={8}>
                 {byYear[year].map((v) => (
                   <Card
                     key={v.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    hoverable
                     onClick={() => navigate(`/visits/${v.id}`)}
+                    styles={{ body: { padding: 16 } }}
                   >
-                    <CardContent className="flex items-start justify-between gap-4 p-4">
-                      <div className="space-y-1 min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs text-muted-foreground">{v.visitDate}</span>
-                          {v.specialty && (
-                            <Badge variant="outline" className="text-xs">
-                              {v.specialty}
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="font-semibold text-sm text-foreground">{v.doctorName}</p>
+                    <Flex justify="space-between" align="flex-start" gap={16}>
+                      <Flex vertical gap={4} style={{ minWidth: 0, flex: 1 }}>
+                        <Flex align="center" gap={8} wrap="wrap">
+                          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                            {v.visitDate}
+                          </Typography.Text>
+                          {v.specialty && <Tag bordered={false}>{v.specialty}</Tag>}
+                        </Flex>
+                        <Typography.Text strong style={{ fontSize: 14 }}>
+                          {v.doctorName}
+                        </Typography.Text>
                         {v.clinic && (
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <MapPin className="h-3 w-3 shrink-0" />
-                            {v.clinic}
-                          </p>
+                          <Flex align="center" gap={4}>
+                            <EnvironmentOutlined style={{ fontSize: 12, color: '#94a3b8' }} />
+                            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                              {v.clinic}
+                            </Typography.Text>
+                          </Flex>
                         )}
                         {v.diagnosis && (
-                          <p className="text-xs text-muted-foreground line-clamp-1">{v.diagnosis}</p>
+                          <Typography.Text type="secondary" style={{ fontSize: 12 }} ellipsis>
+                            {v.diagnosis}
+                          </Typography.Text>
                         )}
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                    </CardContent>
+                      </Flex>
+                      <RightOutlined style={{ color: '#94a3b8', marginTop: 2, flexShrink: 0 }} />
+                    </Flex>
                   </Card>
                 ))}
-              </div>
+              </Flex>
             </section>
           ))
         )}
