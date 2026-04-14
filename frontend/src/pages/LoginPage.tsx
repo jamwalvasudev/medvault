@@ -1,21 +1,29 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, Card, Typography } from 'antd';
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-sm shadow-lg">
-        <CardHeader className="text-center pb-2">
-          <CardTitle className="text-2xl font-bold tracking-tight">MedHistory</CardTitle>
-          <CardDescription className="text-sm">
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#f8fafc',
+        padding: 16,
+      }}
+    >
+      <Card style={{ width: '100%', maxWidth: 380, boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <Typography.Title level={3} style={{ margin: 0 }}>
+            MedHistory
+          </Typography.Title>
+          <Typography.Text type="secondary">
             Your personal medical record, organised.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild className="w-full" size="lg">
-            <a href="/oauth2/authorization/google">Sign in with Google</a>
-          </Button>
-        </CardContent>
+          </Typography.Text>
+        </div>
+        <Button type="primary" size="large" block href="/oauth2/authorization/google">
+          Sign in with Google
+        </Button>
       </Card>
     </div>
   );
